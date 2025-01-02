@@ -1,0 +1,59 @@
+# @package _group_
+
+common:
+  fp16: false
+  log_format: simple
+  log_interval: 100
+  tensorboard_logdir: /path/to/tensorboards_dir/
+
+checkpoint:
+  save_interval_updates: 250
+  keep_interval_updates: 1
+  no_epoch_checkpoints: true
+  save_dir: /path/to/saved_checkpoints/
+
+task:
+  _name: wav2bound
+  data: /path/to/prepared_dataset/
+  data_aug: true
+
+dataset:
+  batch_size: 1
+  num_workers: 3
+  max_tokens: 700000 # 700000 takes up about 16 GB for CPCbig + roberta_base
+  skip_invalid_size_inputs_valid_test: true
+
+distributed_training:
+  ddp_backend: legacy_ddp
+  distributed_world_size: 4
+  #distributed_port: 21992
+  nprocs_per_node: 8
+
+criterion:
+  _name: wav2bound
+  lm_target_type: discrete
+  lm_loss_type: nll
+
+optimization:
+  max_update: 2000
+  lr: [0.00001]
+  update_freq: [24]
+  clip_norm: 10.0
+
+optimizer:
+  _name: adam
+  adam_betas: (0.9,0.98)
+  adam_eps: 1e-06
+  weight_decay: 0.01
+
+lr_scheduler:
+  #_name: polynomial_decay
+  _name: cosine
+  lr: [0.00001]
+  min_lr: 1e-6
+  lr_period_updates: 1000
+  warmup_updates: 50
+
+model:
+  _name: wav2bound
+  ssl_checkpoint: /path/to/xlsr2_960m_1000k.pt
